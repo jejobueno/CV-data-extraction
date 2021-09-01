@@ -224,8 +224,8 @@ ENV/
 env.bak/
 venv.bak/
 
-.data
-data/
+.data/word
+data/word
 
 # Spyder project settings
 .spyderproject
