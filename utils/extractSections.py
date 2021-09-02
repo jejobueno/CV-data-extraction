@@ -25,8 +25,9 @@ def get_section_data(file_name):
     section_title = section_dict.columns.to_list()
     section_words = {}
 
-    for section in section_title[1:]:
+    for section in section_title[0:]:
         section_words[section] = [nlp(text) for text in section_dict[section].dropna(axis=0)]
+        section_words[section] += ([nlp(text.upper()) for text in section_dict[section].dropna(axis=0)])
         matcher.add(section, None, *section_words[section])
 
     d = []
@@ -38,9 +39,9 @@ def get_section_data(file_name):
         rule_id = nlp.vocab.strings[match_id]
 
         if index == len(matches) - 1:
-            span = doc[end:]
+            span = doc[start:]
         else:
-            span = doc[end: matches[index + 1][1] - 1]
+            span = doc[start: matches[index + 1][1] - 1]
 
         if str(span.text) != '':
             d.append((rule_id, span.text))
