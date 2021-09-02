@@ -27,7 +27,7 @@ def get_section_data(file_name):
 
     for section in section_title[0:]:
         section_words[section] = [nlp(text) for text in section_dict[section].dropna(axis=0)]
-        section_words[section].append([nlp(text.upper()) for text in section_dict[section].dropna(axis=0)])
+        section_words[section] += ([nlp(text.upper()) for text in section_dict[section].dropna(axis=0)])
         matcher.add(section, None, *section_words[section])
 
     d = []
