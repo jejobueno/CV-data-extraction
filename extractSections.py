@@ -16,8 +16,8 @@ nlp = spacy.load('en_core_web_lg')
 STOPWORDS = set(stopwords.words('english'))
 
 
-def get_section_data(file_name):
-    txt = docx2txt.process(file_name)
+def get_section_data(txt):
+    #txt = docx2txt.process(file_name)
     doc = nlp(txt)
     matcher = PhraseMatcher(nlp.vocab)
 

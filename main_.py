@@ -4,8 +4,8 @@ from match_name_surname import extract_name
 from match_email import extract_email
 from match_phone_number import extract_mobile_number
 
-
 sections = get_section_data('curriculum_vitae_data/word/3.docx')
+
 
 # Check overall personal_info section
 personal_info = sections['text'].iloc[0]
