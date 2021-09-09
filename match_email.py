@@ -3,15 +3,22 @@ from spacy.matcher import Matcher
 import re
 
 
-def extract_email(info_str):
+def extract_email(info_section):
     try:
+        reg_match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', info_section)
+        matches = reg_match.group(0)
+        return [matches]
+
+    except:
+        print("Regex didn't work")
+    else:
         nlp = spacy.load('en_core_web_lg')
-        doc = nlp(info_str)
+        doc = nlp(info_section)
 
         matcher = Matcher(nlp.vocab)
-        pattern = [{'LIKE_EMAIL':True}]
+        pattern = [{'LIKE_EMAIL': True}]
 
-        matcher.add('EMAIL',[pattern])
+        matcher.add('EMAIL', [pattern])
 
         matches = matcher(doc)
 
@@ -19,9 +26,3 @@ def extract_email(info_str):
             span = doc[start:end]
 
             return span.text
-    except:
-        print("SpaCy didn't work")
-    else:
-        reg_match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', info_str)
-        return reg_match.group(0)
-
