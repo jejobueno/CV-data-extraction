@@ -1,5 +1,6 @@
 from tika import parser
 import glob
+from extractSections import get_section_data
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
@@ -11,10 +12,25 @@ def clean_whitelines(text):
         text += line + '\n'
     return text
 
-file_num = 915
+file_num = 951
+
+def collect_sections(content : str):
+    sections = get_section_data(content)
+    right_sections = ''
+    if 'Education' in sections:
+        right_sections += sections['Education']
+    if 'WorkExperience' in sections:
+        right_sections += sections['WorkExperience']
+    if 'ToolsAndTechnologies' in sections:
+        right_sections += sections['ToolsAndTechnologies']
+    return right_sections
+
 
 parsed_pdf = parser.from_file(f"./curriculum_vitae_data/pdf/{file_num}.pdf")
 base_document = parsed_pdf['content'].replace("\n", "")
+
+right_sections = collect_sections(base_document)
+base_document = clean_whitelines(right_sections)
 
 list_of_documents = []
 list_of_paths = []
@@ -23,7 +39,8 @@ for filepath in glob.iglob("./curriculum_vitae_data/pdf/*.pdf"):
         parsed_files = parser.from_file(filepath)
         document = parsed_files['content']
         if type(document) == str:
-            document = clean_whitelines(document)
+            right_sections = collect_sections(document)
+            document = clean_whitelines(right_sections)
             list_of_documents.append(document)
             list_of_paths.append(filepath)
 
