@@ -11,7 +11,7 @@ import pandas as pd
 from spacy.matcher import PhraseMatcher
 
 
-class sectionExtractor:
+class SectionExtractor:
     def __init__(self):
         self.nlp = spacy.load('en_core_web_sm')
         # Grad all general stop words
