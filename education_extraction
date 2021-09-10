@@ -1,0 +1,68 @@
+from flair.data import Sentence
+import joblib
+from flair.models import SequenceTagger
+import spacy
+from spacy.matcher import PhraseMatcher
+import pandas as pd
+from collections import Counter
+from Edu_Tools_Section import getEduSection
+
+def getEduDate(education_section:str):
+    s= Sentence(education_section)
+    model = joblib.load("./data/ner-large-model.pkl")
+    model.predict(s)
+
+    # iterate over entities
+    dates = []
+    for entity in s.get_spans('ner'):
+        if entity.get_labels()[0].value == 'DATE':
+            date = entity.to_dict()
+            dates.append(date['text'])
+    return dates
+
+def getEduOrg(education_section: str):
+    s= Sentence(education_section)
+
+    model = joblib.load("./data/ner-large-model.pkl")
+    model.predict(s)
+
+    # iterate over entities
+    organizations = []
+    for entity in s.get_spans('ner'):
+        if entity.get_labels()[0].value == 'ORG':
+            org = entity.to_dict()
+            organizations.append(org['text'])
+    return organizations
+
+def getMajor(education_section: str):
+    nlp = spacy.load("en_core_web_lg")
+    doc = nlp(education_section)
+    matcher = PhraseMatcher(nlp.vocab)
+
+    csv_file = pd.read_csv("./data/majors-list.csv")
+    csv_file.columns = ['FOD1P', 'Major', 'Major_Category']
+    major_names = [nlp(education_section) for education_section in csv_file['Major']]
+    matcher.add("Major name", None, *major_names)
+
+    majors= []
+    matches = matcher(doc)
+    for index, section in enumerate(matches):
+        match_id, start, end = section
+        #rule_id = nlp.vocab.strings[match_id]
+        span = doc[start: end]  # get the matched slice of the doc
+        majors.append( span.text)
+    keywords = "\n".join(f'{i[1]} ({j})' for i, j in Counter(majors).items())
+    print("keywords:", keywords)
+
+
+
+education_section = getEduSection("./curriculum_vitae_data/pdf/1.pdf")
+
+major = getMajor(education_section)
+print("major:", major)
+
+date = getEduDate("./curriculum_vitae_data/pdf/1.pdf")
+print("date:", date)
+
+org_name = getEduOrg("./curriculum_vitae_data/pdf/1.pdf")
+print("Org:" , org_name)
