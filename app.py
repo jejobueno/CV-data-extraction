@@ -1,32 +1,50 @@
 import threading
 import joblib
 import pandas as pd
+import pdfplumber
 import streamlit as st
 import numpy as np
+from tika import parser
+import pdf2image
 
+from utils.extractSections import SectionExtractor
 from utils.extractWorkExp import WorkExpExtractor
 
 
 @st.cache(allow_output_mutation=True)
 def createExtractor():
-    return WorkExpExtractor()
+    return WorkExpExtractor(), SectionExtractor()
 
+
+workExpExtractor, sectionExtractor = createExtractor()
 
 st.sidebar.title("RESUME PARSER")
 st.sidebar.write('\n')
-st.sidebar.header("Upload your CV")
+uploaded_file = st.sidebar.file_uploader('Please Upload your CV', type="pdf")
 
-st.sidebar.write('\n')
+if uploaded_file is not None:
+    parsed_pdf = parser.from_file(uploaded_file)
+    # images = pdf2image.convert_from_bytes(uploaded_file.read(), poppler_path='utils/poppler-0.68.0/bin')
+    # for page in images:
+    #    st.sidebar.image(page, use_column_width=True)
+    st.write('Sections of the Document')
+    sections = sectionExtractor.get_section_data(parsed_pdf['content'])
+    st.write(sections)
 
-parameters = dict()
+    if 'WorkExperience' in sections:
+        workExp = workExpExtractor.extractWorkExp(sections['WorkExperience'])
+        st.write('WORK EXPERIENCE')
+        st.write(workExp)
 
-parameters['precision'] = st.sidebar.selectbox('Please select a precision value:',
-                                               ('00', '00:00', '00:00:00', '00:00:00.0', '00:00:00.00', '00:00:00.000'))
-type_address = st.sidebar.selectbox('Please select type of address:', ('REGO', 'ABBR', 'all'))
-parameters['reference_date'] = st.sidebar.date_input('Reference Date', key='reference_date')
-parameters['base_value'] = st.sidebar.slider(label='base', min_value=1, max_value=10000, step=1)
-parameters['column_options'] = st.sidebar.multiselect('Column selection',
-                                                      ['EnterpriseNumber', 'Denomination', 'TypeOfAddress', 'CountryFR',
-                                                       'zipcode', 'MunicipalityFR', 'StreetFR', 'NumberHouse'],
-                                                      default=['EnterpriseNumber'])
-st.sidebar.write("You have selected", len(parameters['column_options']), 'columns')
+    if 'SummaryText' in sections:
+        name, email, phone, address = workExpExtractor.getPersonalInfo(sections['SummaryText'])
+        st.write('Name of the Candidate:')
+        st.write(name)
+        st.write('Email:')
+        st.write(email)
+        st.write('Phone Number:')
+        st.write(phone)
+        st.write('Address:')
+        st.write(address)
+
+

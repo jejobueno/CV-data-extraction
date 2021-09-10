@@ -1,3 +1,4 @@
+import joblib
 from tika import parser
 # opening pdf file
 from utils.extractWorkExp import WorkExpExtractor
@@ -19,8 +20,11 @@ sections = sectionExtractor.get_section_data(data)
 
 print('starting extractor')
 workExperienceExtractor = WorkExpExtractor()
+joblib.dump(workExperienceExtractor, 'workExpExtractor.pkl')
 
 print('starting')
 print(workExperienceExtractor.extractWorkExp(sections['WorkExperience']))
+
+workExperienceExtractor
 
 

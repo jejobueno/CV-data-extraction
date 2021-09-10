@@ -1,3 +1,5 @@
+from difflib import SequenceMatcher
+
 import joblib
 from flair.data import Sentence
 import pandas as pd
@@ -9,7 +11,7 @@ from spacy.matcher import PhraseMatcher
 
 class WorkExpExtractor:
     def __init__(self):
-        self.nlp = spacy.load('en_core_web_sm')
+        self.nlp = spacy.load('en_core_web_lg')
         self.tagger = joblib.load('./models/taggerONTONOTES.pkl')
         self.professions_matcher = self.chargeMatcher('./data/professions.csv', 'professions')
         self.dates = list()
@@ -18,6 +20,7 @@ class WorkExpExtractor:
 
     def extractDates(self, workExperience: str):
         sentence = Sentence(workExperience)
+        print(sentence)
 
         # predict NER tags
         self.tagger.predict(sentence)
@@ -108,6 +111,8 @@ class WorkExpExtractor:
         if len(self.dates) != len(self.jobs):
             self.dates = [None] * len(self.jobs)
 
+        print(self.jobs, self.dates, self.orgs)
+
         workExpDf = pd.DataFrame({'job_title': self.jobs,
                                   'period': self.dates,
                                   'company': self.orgs})
@@ -120,3 +125,98 @@ class WorkExpExtractor:
         matcher = PhraseMatcher(self.nlp.vocab)
         matcher.add(name, None, *[self.nlp(text) for text in words_dict[name].dropna(axis=0)])
         return matcher
+
+    def getEmail(self, summaryText: str):
+        try:
+            reg_match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', info)
+            matches = reg_match.group(0)
+            return [matches]
+        except:
+            print("Regex didn't work")
+        else:
+            doc = self.nlp(info)
+
+            matcher = Matcher(nlp.vocab)
+            pattern = [{'LIKE_EMAIL': True}]
+
+            matcher.add('EMAIL', [pattern])
+
+            matches = matcher(doc)
+
+            for match_id, start, end in matches:
+                span = doc[start:end]
+
+                return span.text
+
+    @staticmethod
+    def extract_mobile_number(summaryText: str):
+        phone = re.findall(re.compile(r'(?:(?:\+?([1-9]|[0-9][0-9]|[0-9][0-9][0-9])\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1['
+                                      r'02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([0-9][1-9]|[0-9]1[02-9]|[2-9]['
+                                      r'02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9]['
+                                      r'02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?'),
+                           summaryText)
+
+        if phone:
+            number = ''.join(phone[0])
+            if len(number) > 10:
+                return '+' + number
+            else:
+                return number
+
+    def getPersonalInfo(self, summaryText: str):
+        emails = self.getEmail(summaryText)
+        # model = SequenceTagger.load('ner-large')
+        s = Sentence(summaryText.lower())
+        # model = joblib.load("./model/ner-large-model.pkl")
+
+        self.tagger.predict(s)
+
+        person_names = []
+        for entity in s.get_spans('ner'):
+            if entity.labels[0].value == "PER":
+                person_names.append(entity.text)
+            else:
+                name_regex = re.search("Name.:?(.*)", summaryText, re.IGNORECASE)
+                if name_regex:
+                    person_names.append(name_regex.group())
+        print(person_names)
+        print(emails)
+
+        name = certificate_name(person_names, emails[0])
+        phone = self.getPersonalInfo(summaryText)
+        address = self.getAddress(summaryText)
+        return name, emails[0], phone, address
+
+    def getAddress(self, summaryText: str):
+        locations = []
+        try:
+            address_regex = re.finditer("Address.:?(.*)", summaryText.replace(" ", ""), re.IGNORECASE)
+            if address_regex:
+                for match in address_regex:
+                    if "@" not in match.group(1):
+                        locations.append(match.group(1))
+            return locations
+        except:
+            print("Address not found.")
+        else:
+            self.tagger.predict(sentence)
+
+            for entity in sentence.get_spans('ner'):
+                words = [entity]
+                for i in words:
+                    if i.labels[0].value == "LOC":
+                        locations.append(i.text)
+            return locations
+
+
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
+
+
+def certificate_name(names, email):
+    good_name = ''
+    for name in names:
+        prob = similar(name, email)
+        if prob > similar(good_name, email):
+            good_name = name
+    return good_name
