@@ -1,5 +1,5 @@
 from tika import parser
-from extractSections import get_section_data
+from extractSections import SectionExtractor
 import pandas as pd
 import re
 import spacy
@@ -9,10 +9,10 @@ from collections import Counter
 from flair.data import Sentence
 from flair.models import SequenceTagger
 
-
+sectioning_extractor = SectionExtractor()
 parsed_pdf = parser.from_file("./curriculum_vitae_data/pdf/1.pdf")
 content = parsed_pdf['content']
-sections = get_section_data(content)
+sections = sectioning_extractor.get_section_data(content)
 
 for key in sections.keys():
     if key == 'Education':

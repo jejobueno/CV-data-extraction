@@ -1,15 +1,15 @@
 from tika import parser
-from extractSections import get_section_data
+from extractSections import SectionExtractor
 import re
 
-parsed_pdf = parser.from_file("./curriculum_vitae_data/pdf/3.pdf")
-
+#parsed_pdf = parser.from_file("./curriculum_vitae_data/pdf/3.pdf")
 
 def get_section(pdf_file):
     parsed_pdf = parser.from_file(pdf_file)
     data_content = parsed_pdf['content']
-    section = get_section_data(data_content)
-    return section.get("SummaryText")
+    sections = SectionExtractor()
+    sections = sections.get_section_data(data_content)
+    return sections.get("SummaryText")
 
 
 info_section = get_section("./curriculum_vitae_data/pdf/3.pdf")
