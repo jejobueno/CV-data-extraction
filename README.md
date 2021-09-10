@@ -32,7 +32,7 @@ pip install -r requirements.txt
 ```
 
 ### Usage
-`python main.py`
+`streamlit run app.py`
 
 ### Contributors
 - [Jesus Bueno](https://github.com/jejobueno)
