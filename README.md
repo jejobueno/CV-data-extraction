@@ -34,6 +34,8 @@ pip install -r requirements.txt
 ### Usage
 `streamlit run app.py`
 
+![cvparser](https://user-images.githubusercontent.com/34608190/132905395-bd4086b8-ce0c-4381-b33c-45f8124e3884.gif)
+
 ### Contributors
 - [Jesus Bueno](https://github.com/jejobueno)
 - [Ceren Morey](https://github.com/c-morey)
