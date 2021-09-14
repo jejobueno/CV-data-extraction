@@ -27,9 +27,12 @@ if uploaded_file is not None:
     # images = pdf2image.convert_from_bytes(uploaded_file.read(), poppler_path='utils/poppler-0.68.0/bin')
     # for page in images:
     #    st.sidebar.image(page, use_column_width=True)
-    st.write('Sections of the Document')
+    st.write('SECTIONS IN THIS RESUME')
     sections = sectionExtractor.get_section_data(parsed_pdf['content'])
-    st.write(sections)
+    for key in sections:
+        expander = st.expander(key, expanded=False)
+        with expander:
+            st.write(sections[key])
 
     if 'WorkExperience' in sections:
         workExp = workExpExtractor.extractWorkExp(sections['WorkExperience'])
@@ -37,14 +40,23 @@ if uploaded_file is not None:
         st.write(workExp)
 
     if 'SummaryText' in sections:
+        st.write('PERSONAL INFO:')
+        c1, c2 = st.columns((1, 1))
         name, email, phone, address = workExpExtractor.getPersonalInfo(sections['SummaryText'])
-        st.write('Name of the Candidate:')
-        st.write(name)
-        st.write('Email:')
-        st.write(email)
-        st.write('Phone Number:')
-        st.write(phone)
-        st.write('Address:')
-        st.write(address)
+        with c1:
+            st.caption('Complete Name')
+            st.markdown(f'`{name}`')
+            st.caption('Phone Number:')
+            st.markdown(f'`{phone}`')
+        with c2:
+            st.caption('Email:')
+            st.markdown(f'`{email}`')
+            st.caption('Address:')
+            if len(address) > 0:
+                st.markdown(f'`{address[0]}`')
+            else:
+                st.markdown(f'`No postal  address found`')
+
+
 
 

@@ -128,7 +128,7 @@ class WorkExpExtractor:
 
     def getEmail(self, summaryText: str):
         try:
-            reg_match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', info)
+            reg_match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', summaryText)
             matches = reg_match.group(0)
             return [matches]
         except:
@@ -178,12 +178,16 @@ class WorkExpExtractor:
             else:
                 name_regex = re.search("Name.:?(.*)", summaryText, re.IGNORECASE)
                 if name_regex:
-                    person_names.append(name_regex.group())
-        print(person_names)
-        print(emails)
-
+                    name = name_regex.group(1).replace(':', '')
+                    name = name.strip()
+                    person_names.append(name)
         name = certificate_name(person_names, emails[0])
-        phone = self.getPersonalInfo(summaryText)
+        if name == '':
+            if len(person_names) > 0:
+                name = person_names[0]
+            else:
+                name = 'No name found'
+        phone = self.extract_mobile_number(summaryText)
         address = self.getAddress(summaryText)
         return name, emails[0], phone, address
 
